@@ -7,14 +7,14 @@ FC_SIZE = 256
 
 class Model(nn.Module):
     def __init__(
-        self, in_dims_cc, in_dimms_mlo, channels=[1, 32, 64, 128], fc_size=FC_SIZE
+        self, in_dims, out_classes, channels, strides, fc_size=FC_SIZE
     ):
         super(Model, self).__init__()
         # convolutional blocks for each image
-        self.l_cc_cnn = get_block_cnn(in_dims_cc, channels, fc_size)
-        self.l_mlo_cnn = get_block_cnn(in_dimms_mlo, channels, fc_size)
-        self.r_cc_cnn = get_block_cnn(in_dims_cc, channels, fc_size)
-        self.r_mlo_cnn = get_block_cnn(in_dimms_mlo, channels, fc_size)
+        self.l_cc_cnn = get_block_cnn(in_dims, channels, strides, fc_size)
+        self.l_mlo_cnn = get_block_cnn(in_dims, channels, strides, fc_size)
+        self.r_cc_cnn = get_block_cnn(in_dims, channels, strides, fc_size)
+        self.r_mlo_cnn = get_block_cnn(in_dims, channels, strides, fc_size)
 
         # concatenate the outputs of the convolutional blocks
         self.block_classifier = nn.Sequential(
@@ -24,7 +24,7 @@ class Model(nn.Module):
             nn.LeakyReLU(0.01),
             nn.Linear(fc_size, fc_size // 2),
             nn.LeakyReLU(0.01),
-            nn.Linear(fc_size // 2, 1),
+            nn.Linear(fc_size // 2, out_classes),
             nn.Softmax(dim=1),
         )
 

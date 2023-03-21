@@ -1,8 +1,6 @@
-# import from relative path
-
-
 from dataloader import get_dataloader
 from model import Model
+from trainer import Trainer
 import torch.nn as nn
 import torch
 
@@ -15,17 +13,25 @@ sys.path.append(PATH_PREFIX)
 
 
 def main():
-    dtl = get_dataloader("/home/lan/Desktop/joskogled/data/processed_data.txt")
+    dtl_train, dtl_val = get_dataloader(
+        data_path="../data/processed_data.txt",
+        img_path="../data/processed_data",
+        batch_size=8,
+        shuffle=True,
+        p=0.7
+    )
     print("mogoce dela")
-    criterion = nn.CrossEntropyLoss()
     model = Model(
-        in_dims_cc=(2048, 1664),
-        in_dimms_mlo=(2048, 1664),
-        channels=[1, 4],
-        fc_size=2,
+        in_dims=(2048, 1576),
+        out_classes=5,              # 0, 1, 2, 3, 4
+        channels=[1, 16, 32, 32, 64, 128],
+        strides=[2, 2, 2, 1, 1],
+        fc_size=128,
     )
     print("ne res ja")
+    criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    trainer = Trainer(model, criterion, optimizer)
 
     # Train one epoch
     NUM_EPOCHS = 1
@@ -34,32 +40,38 @@ def main():
         # Train
         # model.train()
         for batch_idx, (
-            patient_id,
-            l_cc,
-            l_mlo,
-            r_cc,
-            r_mlo,
-            years_to_cancer,
-        ) in enumerate(dtl):
+                patient_id,
+                l_cc,
+                l_mlo,
+                r_cc,
+                r_mlo,
+                years_to_cancer,
+        ) in enumerate(dtl_train):
 
             print(patient_id)
             print(l_cc.shape)
-            break
-            # Forward pass
-            output = model(l_cc, l_mlo, r_cc, r_mlo)
-            loss = criterion(output, years_to_cancer)
 
-            # Backward and optimize
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            loss = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
 
             if (batch_idx + 1) % 10 == 0:
                 print(
                     "Epoch [{}/{}], Step [{}/{}], Loss: {:.4f}".format(
-                        epoch + 1, NUM_EPOCHS, batch_idx + 1, len(dtl), loss.item()
+                        epoch + 1, NUM_EPOCHS, batch_idx + 1, len(dtl_train), loss.item()
                     )
                 )
+        # after every epoch calculate val loss
+        val_loss = 0
+        batch_idx = 0
+        for batch_idx, (
+                patient_id,
+                l_cc,
+                l_mlo,
+                r_cc,
+                r_mlo,
+                years_to_cancer,
+        ) in enumerate(dtl_val):
+            val_loss += trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
+        val_loss /= (batch_idx + 1)
 
 
 if __name__ == "__main__":
