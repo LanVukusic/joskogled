@@ -4,6 +4,4 @@
 
 ## Avtorji:
 
-nevm kdo realno
-
-<!-- ![SLIKICA](./docs/image.png) -->
+![SLIKICA](https://raw.githubusercontent.com/LanVukusic/joskogled/master/docs/image.png)  
