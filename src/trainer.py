@@ -13,10 +13,12 @@ class Trainer:
         loss = self.criterion(output, y)
         loss.backward()
         self.optimizer.step()
-        return loss
+        return loss, output
 
     def eval(self, x, y):
+        self.model.eval()
         with no_grad():
-            output = self.model.eval(*x)
+            output = self.model.forward(*x)
             loss = self.criterion(output, y)
+        self.model.train()
         return loss

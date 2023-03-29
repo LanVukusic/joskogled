@@ -1,0 +1,10 @@
+202310048-812,rakave/202310048-812_eid-3_L_CC.png,rakave/202310048-812_eid-3_L_MLO.png,rakave/202310048-812_eid-3_R_CC.png,rakave/202310048-812_eid-3_R_MLO.png,3
+2023103508-810,rakave/2023103508-810_eid-2_L_CC.png,rakave/2023103508-810_eid-2_L_MLO.png,rakave/2023103508-810_eid-2_R_CC.png,rakave/2023103508-810_eid-2_R_MLO.png,3
+2023105718-812,rakave/2023105718-812_eid-3_L_CC.png,rakave/2023105718-812_eid-3_L_MLO.png,rakave/2023105718-812_eid-3_R_CC.png,rakave/2023105718-812_eid-3_R_MLO.png,3
+2023112298-810,rakave/2023112298-810_eid-2_L_CC.png,rakave/2023112298-810_eid-2_L_MLO.png,rakave/2023112298-810_eid-2_R_CC.png,rakave/2023112298-810_eid-2_R_MLO.png,4
+2023114108-812,rakave/2023114108-812_eid-2_L_CC.png,rakave/2023114108-812_eid-2_L_MLO.png,rakave/2023114108-812_eid-2_R_CC.png,rakave/2023114108-812_eid-2_R_MLO.png,3
+202310078-810,zdrave/202310078-810_eid-2_L_CC.png,zdrave/202310078-810_eid-2_L_MLO.png,zdrave/202310078-810_eid-2_R_CC.png,zdrave/202310078-810_eid-2_R_MLO.png,100
+202310138-809,zdrave/202310138-809_eid-2_L_CC.png,zdrave/202310138-809_eid-2_L_MLO.png,zdrave/202310138-809_eid-2_R_CC.png,zdrave/202310138-809_eid-2_R_MLO.png,100
+202310178-809,zdrave/202310178-809_eid-2_L_CC.png,zdrave/202310178-809_eid-2_L_MLO.png,zdrave/202310178-809_eid-2_R_CC.png,zdrave/202310178-809_eid-2_R_MLO.png,100
+202310358-809,zdrave/202310358-809_eid-2_L_CC.png,zdrave/202310358-809_eid-2_L_MLO.png,zdrave/202310358-809_eid-2_R_CC.png,zdrave/202310358-809_eid-2_R_MLO.png,100
+202310868-809,zdrave/202310868-809_eid-2_L_CC.png,zdrave/202310868-809_eid-2_L_MLO.png,zdrave/202310868-809_eid-2_R_CC.png,zdrave/202310868-809_eid-2_R_MLO.png,100

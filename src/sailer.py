@@ -6,26 +6,36 @@ import numpy as np
 # load images from directory data/rakave and data/zdrave
 # rescale them and save them to data/processed_data
 # without saving them to a list
-def load_images():
-    for img in tqdm(glob.glob("../data/rakave/*.png")):
-        print()
-        image = cv2.imread(img, cv2.IMREAD_UNCHANGED)
-        image = cv2.resize(image, (1664, 2048), interpolation=cv2.INTER_AREA)
-        # 8 bit unsigned integer (0 to 255)
-        image = (image / 256).astype(np.uint8)
-        cv2.imwrite("../data/processed_data/" + img.split("/")[-1], image)
+RES0 = 3152#1576
+RES1 = 4096#2048
 
-    for img in tqdm(glob.glob("../data/zdrave/*.png")):
+def process_in_dir(in_path, out_path, k):
+    counter = 0
+    for img in tqdm(sorted(glob.glob(in_path + "/*.png"))):
         image = cv2.imread(img, cv2.IMREAD_UNCHANGED)
-        image = cv2.resize(image, (1664, 2048), interpolation=cv2.INTER_AREA)
+        print(image.shape)
+        if image.shape[0] == 4096:
+            if "_L_" in img:
+                image = image[:, :3152]
+            else:
+                image = image[:, -3152:]
+        image = cv2.resize(image, (RES0 // k, RES1 // k), interpolation=cv2.INTER_AREA)
         # 8 bit unsigned integer (0 to 255)
         image = (image / 256).astype(np.uint8)
-        cv2.imwrite("../data/processed_data/" + img.split("/")[-1], image)
+        print(cv2.imwrite(out_path + "/" + img.split("/")[-1], image))
+        counter +=1
+        if counter == 5*4:
+            break
+
+
+def load_images():
+    k = 8
+    process_in_dir("../data/rakave", "../data/processed_data_halfk_small", k)
+    process_in_dir("../data/zdrave", "../data/processed_data_halfk_small", k)
 
 
 if __name__ == "__main__":
     load_images()
-
 # pinky:src marko$ python3 dataloader.py
 # getdata monaa
 # getdata monaa
