@@ -72,7 +72,7 @@ def main():
         out_classes=5,  # 0, 1, 2, 3, 4
         channels=[1, 32, 64, 128, 256],
         strides=[2, 2, 1, 1],
-        fc_size=[256, 128, 64],
+        fc_sizes=[256, 128, 64]
     ).to(DEVICE)
     # print(model)
 
