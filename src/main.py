@@ -34,7 +34,16 @@ model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
     NUM_EPOCHS,
     datetime.datetime.now().strftime("%Y%m%dT%H%M%S"),
 )
+
+
+# METRICS
+{
+    auroc = 
+}
+
 print("runnig model: {}".format(model_name), flush=True)
+
+
 
 
 def main():
