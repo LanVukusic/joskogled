@@ -11,6 +11,6 @@
 #SBATCH --nodes=1
 
 # nvidia-smi --query 
-singularity exec --nv container.sif python3 main.py
+singularity exec --nv container3.sif python3 main.py
 
 # singularity exec container.sif  python3 main.py
