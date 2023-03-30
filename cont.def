@@ -20,8 +20,7 @@ From: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
     # fortune "$@"
 
 %labels
-    # poljubne oznake vsebnika kot pari oznaka - vrednost
-    Author      Lan Vukusic
+    Author      Lan Vukusic, Matic Sutar, Enei Sluga
     Container   joskogled
-    Version     1.0
+    Version     3.0
     Description kontejner za ucenje na tekmovanju ris2023

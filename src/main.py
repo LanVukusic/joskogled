@@ -8,6 +8,7 @@ import torch
 import math
 import datetime
 import torchmetrics
+import torchvision.transforms as T
 
 # fix absolute path problem
 import os
@@ -38,30 +39,43 @@ print("runnig model: {}".format(model_name), flush=True)
 
 def main():
     print("zacetek", flush=True)
+    # set random seed for torch
+    torch.manual_seed(3)
+
+    # define transformation to be aplied on train data images
+    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-2, 2)))
+
+    # get dataloaders
     dtl_train, dtl_val, shape = get_dataloader(
-        data_path="../data/processed_data_balanced.txt",
+        data_path="../data/processed_data.txt",
         img_path="../data/processed_data_halfk",
         batch_size=BATCH_SIZE,
         shuffle=True,
         p=0.8,
+        upsample=5,
+        transformation=None,
     )
     print("mogoce dela", flush=True)
+
+    # define classification model
     model = Model(
         in_dims=shape,
-        out_classes=2,  # 0, 1, 2, 3, 4
+        out_classes=5,  # 0, 1, 2, 3, 4
         channels=[1, 32, 64, 128, 256],
         strides=[2, 2, 1, 1],
-        fc_size=64,
+        fc_size=[256, 128, 64],
     ).to(DEVICE)
     # print(model)
+
+    # define trainer with loss and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     trainer = Trainer(model, criterion, optimizer)
     print("ne res ja", flush=True)
 
+    # train for number of epochs
     for epoch in range(NUM_EPOCHS):
 
-        # Train
         # model.train()
         for batch_idx, (
             patient_id,
@@ -76,7 +90,7 @@ def main():
             loss, out = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
             acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
 
-            if (batch_idx + 1) % 1 == 0:
+            if (batch_idx + 1) % 50 == 0:
                 print(
                     "Epoch [{}/{}], Step [{}/{}], Loss: {:.4f} Prob: {:.4f} Acc: {:.4f}".format(
                         epoch + 1,
@@ -100,7 +114,14 @@ def main():
             r_mlo,
             years_to_cancer,
         ) in enumerate(dtl_val):
-            val_loss += trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
+            loss, out = trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
+            acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
+            val_loss += loss
+            print(out.argmax(axis=1))
+            print(years_to_cancer)
+            print(acc)
+            print("----------------")
+
         val_loss /= batch_idx + 1
         print(val_loss)
 
