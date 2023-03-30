@@ -16,7 +16,7 @@ class Model(nn.Module):
             nn.LeakyReLU(0.01),
             nn.Linear(fc_size, fc_size // 2),            
             nn.LeakyReLU(0.01),
-            nn.Linear(32, out_classes)
+            nn.Linear(fc_size // 2, out_classes)
         )
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
@@ -46,7 +46,7 @@ class Model4(nn.Module):
             nn.LeakyReLU(0.01),
             nn.Linear(fc_size, fc_size // 2),            
             nn.LeakyReLU(0.01),
-            nn.Linear(32, out_classes)
+            nn.Linear(fc_size // 2, out_classes)
         )
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):

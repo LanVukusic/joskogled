@@ -21,4 +21,4 @@ class Trainer:
             output = self.model.forward(*x)
             loss = self.criterion(output, y)
         self.model.train()
-        return loss
+        return loss, output
