@@ -6,10 +6,13 @@ from trainer import Trainer
 import torch.nn as nn
 import torch
 import math
+import datetime
+import torchmetrics
 
 # fix absolute path problem
 import os
 import sys
+
 
 PATH_PREFIX = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PATH_PREFIX)
@@ -21,6 +24,16 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NUM_EPOCHS = 20
 BATCH_SIZE = 16
 LR = 3e-4
+MODEL_BASE_NAME = "model"
+
+model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
+    MODEL_BASE_NAME,
+    LR,
+    BATCH_SIZE,
+    NUM_EPOCHS,
+    datetime.datetime.now().strftime("%Y%m%dT%H%M%S"),
+)
+print("runnig model: {}".format(model_name), flush=True)
 
 
 def main():
