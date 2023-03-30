@@ -12,7 +12,7 @@ class Model(nn.Module):
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
 
         # concatenate the outputs of the convolutional blocks
-        self.block_classifier = get_block_classifier(channels[-1], fc_sizes)
+        self.block_classifier = get_block_classifier(channels[-1], fc_sizes, out_classes)
         self.to_classes = nn.Linear(fc_sizes[-1], out_classes)
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
