@@ -3,10 +3,9 @@ from block_cnn import get_block_cnn, get_block_cnn_pool
 from block_classifier import get_block_classifier
 import torch
 
+
 class Model(nn.Module):
-    def __init__(
-        self, in_dims, out_classes, channels, strides, fc_sizes
-    ):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes):
         super(Model, self).__init__()
         # convolutional blocks for each image
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
@@ -18,7 +17,10 @@ class Model(nn.Module):
         )
 
         # concatenate the outputs of the convolutional blocks
-        self.block_classifier = get_block_classifier(channels[-1], fc_sizes, out_classes)
+        self.block_classifier = get_block_classifier(
+            channels[-1], fc_sizes, out_classes
+        )
+        self.to_classes = nn.Linear(fc_sizes[-1], out_classes)
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
         l_cc = self.block_cnn(l_cc)
@@ -31,10 +33,9 @@ class Model(nn.Module):
         x = self.block_classifier(x)
         return x
 
+
 class Model4(nn.Module):
-    def __init__(
-        self, in_dims, out_classes, channels, strides, fc_size
-    ):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_size):
         super(Model4, self).__init__()
         # convolutional blocks for each image
         self.block_cnn_lcc = get_block_cnn_pool(in_dims, channels, strides)
@@ -46,9 +47,9 @@ class Model4(nn.Module):
         self.block_classifier = nn.Sequential(
             nn.Linear(4 * fc_size, fc_size),
             nn.LeakyReLU(0.01),
-            nn.Linear(fc_size, fc_size // 2),            
+            nn.Linear(fc_size, fc_size // 2),
             nn.LeakyReLU(0.01),
-            nn.Linear(fc_size // 2, out_classes)
+            nn.Linear(fc_size // 2, out_classes),
         )
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):

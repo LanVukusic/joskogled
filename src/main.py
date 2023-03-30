@@ -6,11 +6,14 @@ from trainer import Trainer
 import torch.nn as nn
 import torch
 import math
+import datetime
+import torchmetrics
 import torchvision.transforms as T
 
 # fix absolute path problem
 import os
 import sys
+
 
 PATH_PREFIX = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(PATH_PREFIX)
@@ -22,17 +25,25 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NUM_EPOCHS = 20
 BATCH_SIZE = 16
 LR = 3e-4
+MODEL_BASE_NAME = "model"
+
+model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
+    MODEL_BASE_NAME,
+    LR,
+    BATCH_SIZE,
+    NUM_EPOCHS,
+    datetime.datetime.now().strftime("%Y%m%dT%H%M%S"),
+)
+print("runnig model: {}".format(model_name), flush=True)
 
 
 def main():
-    print('zacetek', flush=True)
+    print("zacetek", flush=True)
     # set random seed for torch
     torch.manual_seed(3)
 
     # define transformation to be aplied on train data images
-    transformation = torch.nn.Sequential(
-        T.RandomRotation(degrees=(-2, 2))
-    )
+    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-2, 2)))
 
     # get dataloaders
     dtl_train, dtl_val, shape = get_dataloader(
@@ -42,19 +53,19 @@ def main():
         shuffle=True,
         p=0.8,
         upsample=5,
-        transformation = None
+        transformation=None,
     )
     print("mogoce dela", flush=True)
 
     # define classification model
     model = Model(
         in_dims=shape,
-        out_classes=5,              # 0, 1, 2, 3, 4
+        out_classes=5,  # 0, 1, 2, 3, 4
         channels=[1, 32, 64, 128, 256],
         strides=[2, 2, 1, 1],
         fc_sizes=[256, 128, 64]
     ).to(DEVICE)
-    #print(model)
+    # print(model)
 
     # define trainer with loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -111,7 +122,7 @@ def main():
             print(acc)
             print("----------------")
 
-        val_loss /= (batch_idx + 1)
+        val_loss /= batch_idx + 1
         print(val_loss)
 
 
