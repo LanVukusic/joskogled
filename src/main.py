@@ -26,6 +26,7 @@ NUM_EPOCHS = 20
 BATCH_SIZE = 16
 LR = 3e-4
 MODEL_BASE_NAME = "model"
+NUM_CLASSES = 2
 
 model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
     MODEL_BASE_NAME,
@@ -37,13 +38,13 @@ model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
 
 
 # METRICS
-{
-    auroc = 
+metrics = {
+    "auroc": torchmetrics.AUROC(num_classes=NUM_CLASSES, average="macro"),
+    "accuracy": torchmetrics.Accuracy(),
+    "precision": torchmetrics.Precision(num_classes=NUM_CLASSES, average="macro"),
 }
 
 print("runnig model: {}".format(model_name), flush=True)
-
-
 
 
 def main():
@@ -69,10 +70,10 @@ def main():
     # define classification model
     model = Model(
         in_dims=shape,
-        out_classes=5,  # 0, 1, 2, 3, 4
+        out_classes=NUM_CLASSES,  # 0, 1, 2, 3, 4
         channels=[1, 32, 64, 128, 256],
         strides=[2, 2, 1, 1],
-        fc_sizes=[256, 128, 64]
+        fc_sizes=[256, 128, 64],
     ).to(DEVICE)
     # print(model)
 
@@ -80,7 +81,6 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LR)
     trainer = Trainer(model, criterion, optimizer)
-    print("ne res ja", flush=True)
 
     # train for number of epochs
     for epoch in range(NUM_EPOCHS):
@@ -99,19 +99,32 @@ def main():
             loss, out = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
             acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
 
-            if (batch_idx + 1) % 50 == 0:
+            # # dont print all th time just every 50
+            # if (batch_idx + 1) % 50 == 0:
+            #     print(
+            #         "Epoch [{}/{}], Step [{}/{}], Loss: {:.4f} Prob: {:.4f} Acc: {:.4f}".format(
+            #             epoch + 1,
+            #             NUM_EPOCHS,
+            #             batch_idx + 1,
+            #             len(dtl_train),
+            #             loss.item(),
+            #             math.e ** (-loss.item()),
+            #             acc,
+            #         ),
+            #         flush=True,
+            #     )
+
+            # add data to metrics
+            for metric_name, metric in metrics.items():
                 print(
-                    "Epoch [{}/{}], Step [{}/{}], Loss: {:.4f} Prob: {:.4f} Acc: {:.4f}".format(
-                        epoch + 1,
-                        NUM_EPOCHS,
-                        batch_idx + 1,
-                        len(dtl_train),
-                        loss.item(),
-                        math.e ** (-loss.item()),
-                        acc,
-                    ),
+                    "{}: {}".format(metric_name, metric(out, years_to_cancer)),
                     flush=True,
                 )
+
+        # print metrics and compute
+        for metric_name, metric in metrics.items():
+            print("\nBATCH: {}: {}\n".format(metric_name, metric.compute()), flush=True)
+
         # after every epoch calculate val loss
         val_loss = 0
         batch_idx = 0
