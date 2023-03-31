@@ -1,26 +1,40 @@
 import torch.nn as nn
-from block_cnn import get_block_cnn, get_block_cnn_pool
+from block_cnn import get_block_deconv, get_block_cnn_pool
 from block_classifier import get_block_classifier
 import torch
 
 
+# class ModelYolo(nn.Module):
+#     def __init__(self, in_dims, out_classes, channels, strides, fc_sizes):
+#         super(ModelYolo, self).__init__()
+#         # convolutional blocks for each image
+#         self.block_yolo = get_block_yolo5(fc_sizes[0])
+
+#         # concatenate the outputs of the convolutional blocks
+#         self.block_classifier = get_block_classifier(
+#             4 * channels[-1], fc_sizes, out_classes
+#         )
+
+#     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
+#         l_cc = self.block_yolo(l_cc)
+#         l_mlo = self.block_yolo(l_mlo)
+#         r_cc = self.block_yolo(r_cc)
+#         r_mlo = self.block_yolo(r_mlo)
+
+#         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
+#         x = self.block_classifier(cat)
+#         return x
+
 class Model(nn.Module):
-    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes, dropouts):
         super(Model, self).__init__()
         # convolutional blocks for each image
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
 
-        # reduce from 4 cnn block
-        self.cat_reduce_dim = nn.Sequential(
-            nn.Linear(4 * channels[-1], channels[-1])
-            nn.LeakyReLU(0.01)
-        )
-
         # concatenate the outputs of the convolutional blocks
         self.block_classifier = get_block_classifier(
-            channels[-1], fc_sizes, out_classes
+            4 * channels[-1], fc_sizes, dropouts, out_classes
         )
-        self.to_classes = nn.Linear(fc_sizes[-1], out_classes)
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
         l_cc = self.block_cnn(l_cc)
@@ -28,11 +42,44 @@ class Model(nn.Module):
         r_cc = self.block_cnn(r_cc)
         r_mlo = self.block_cnn(r_mlo)
 
+        # first prediction head
         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
-        x = self.cat_reduce_dim(cat)
-        x = self.block_classifier(x)
+        x = self.block_classifier(cat)
         return x
 
+class ModelNou(nn.Module):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes):
+        super(Model, self).__init__()
+        # convolutional blocks for each image
+        self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
+
+        # concatenate the outputs of the convolutional blocks
+        self.block_classifier = get_block_classifier(
+            4 * channels[-1], fc_sizes, out_classes
+        )
+
+        self.block.deccoder = get_block_deconv(
+            channels, strides,
+        )
+
+        self.gap = GlobalAveragePooling()
+
+        self.l1 = nn.Linear()
+        layers.append(nn.LeakyReLU(0.1))
+
+    def forward(self, l_cc, l_mlo, r_cc, r_mlo):
+        l_cc = self.block_cnn(l_cc)
+        l_mlo = self.block_cnn(l_mlo)
+        r_cc = self.block_cnn(r_cc)
+        r_mlo = self.block_cnn(r_mlo)
+        # decouple
+
+        # first prediction head
+        cat = torch.cat([self.gap(l_cc), self.gap(l_mlo), self.gap(r_cc),self.gap(r_mlo)], dim=1)
+        x = self.block_classifier(cat)
+
+        # second deccoder head
+        cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
 
 class Model4(nn.Module):
     def __init__(self, in_dims, out_classes, channels, strides, fc_size):

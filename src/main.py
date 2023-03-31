@@ -22,11 +22,11 @@ sys.path.append(PATH_PREFIX)
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # PARAMS
-NUM_EPOCHS = 20
+NUM_EPOCHS = 50
 BATCH_SIZE = 16
-LR = 3e-4
-MODEL_BASE_NAME = "model"
-NUM_CLASSES = 2
+LR = 7e-5
+MODEL_BASE_NAME = "model_dropout_yolo"
+NUM_CLASSES = 5
 
 model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
     MODEL_BASE_NAME,
@@ -39,10 +39,16 @@ model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
 
 # METRICS
 metrics = {
-    "auroc": torchmetrics.AUROC(num_classes=NUM_CLASSES, average="macro"),
-    "accuracy": torchmetrics.Accuracy(),
-    "precision": torchmetrics.Precision(num_classes=NUM_CLASSES, average="macro"),
+    "auroc": torchmetrics.AUROC(
+        task="multiclass", num_classes=NUM_CLASSES, average="macro"
+    ).to(DEVICE),
+    "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES).to(DEVICE),
+    "precision": torchmetrics.Precision(
+        task="multiclass", num_classes=NUM_CLASSES, average="macro"
+    ).to(DEVICE),
+    "loss": torchmetrics.MeanMetric()
 }
+
 
 print("runnig model: {}".format(model_name), flush=True)
 
@@ -53,7 +59,7 @@ def main():
     torch.manual_seed(3)
 
     # define transformation to be aplied on train data images
-    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-2, 2)))
+    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-25, 25)))
 
     # get dataloaders
     dtl_train, dtl_val, shape = get_dataloader(
@@ -62,8 +68,8 @@ def main():
         batch_size=BATCH_SIZE,
         shuffle=True,
         p=0.8,
-        upsample=5,
-        transformation=None,
+        upsample=3,
+        transformation=transformation,
     )
     print("mogoce dela", flush=True)
 
@@ -73,9 +79,9 @@ def main():
         out_classes=NUM_CLASSES,  # 0, 1, 2, 3, 4
         channels=[1, 32, 64, 128, 256],
         strides=[2, 2, 1, 1],
-        fc_sizes=[256, 128, 64],
+        fc_sizes=[128, 64, 32],
+        dropouts=[0.3, 0.3, 0.3]
     ).to(DEVICE)
-    # print(model)
 
     # define trainer with loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -94,37 +100,28 @@ def main():
             r_mlo,
             years_to_cancer,
         ) in enumerate(dtl_train):
-            # print(patient_id)
-            print(years_to_cancer)
             loss, out = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
             acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
 
-            # # dont print all th time just every 50
-            # if (batch_idx + 1) % 50 == 0:
-            #     print(
-            #         "Epoch [{}/{}], Step [{}/{}], Loss: {:.4f} Prob: {:.4f} Acc: {:.4f}".format(
-            #             epoch + 1,
-            #             NUM_EPOCHS,
-            #             batch_idx + 1,
-            #             len(dtl_train),
-            #             loss.item(),
-            #             math.e ** (-loss.item()),
-            #             acc,
-            #         ),
-            #         flush=True,
-            #     )
-
             # add data to metrics
-            for metric_name, metric in metrics.items():
+            for metric_name, metric in list(metrics.items())[:-1]:
                 print(
-                    "{}: {}".format(metric_name, metric(out, years_to_cancer)),
+                    "{}: {:.2f}".format(metric_name, metric(out, years_to_cancer)),
                     flush=True,
+                    end="| "
                 )
+            print(
+                "loss: {:.2f}".format( list(metrics.values())[-1](loss.item())),
+                flush=True,
+            )
 
         # print metrics and compute
-        for metric_name, metric in metrics.items():
-            print("\nBATCH: {}: {}\n".format(metric_name, metric.compute()), flush=True)
-
+        print()
+        print("EPOCH {}:".format(epoch))
+        for metric_name, metric in list(metrics.items()):
+            print("  -: {}: {:.2f}".format(metric_name, metric.compute()), flush=True)
+        print()
+        [metric.reset() for metric in metrics.values()] # reset metrics
         # after every epoch calculate val loss
         val_loss = 0
         batch_idx = 0
@@ -137,12 +134,20 @@ def main():
             years_to_cancer,
         ) in enumerate(dtl_val):
             loss, out = trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
-            acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
             val_loss += loss
-            print(out.argmax(axis=1))
-            print(years_to_cancer)
-            print(acc)
-            print("----------------")
+            # acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
+            # add data to metrics
+            for metric_name, metric in list(metrics.items())[:-1]:
+                metric(out, years_to_cancer)
+            list(metrics.values())[-1](loss.item())
+        print("\nVALIDATION: ")
+        for metric_name, metric in list(list(metrics.items())):
+            print("  -: {}: {:.2f}".format(metric_name, metric.compute()), flush=True)
+        print()
+        [metric.reset() for metric in metrics.values()] # reset metrics
+
+
+
 
         val_loss /= batch_idx + 1
         print(val_loss)

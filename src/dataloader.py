@@ -35,13 +35,14 @@ class BreastCancerDataset(Dataset):
 
         for sample in data:
             patient_id = sample[0]
-            years_to_cancer = int(sample[5])
+            years_to_cancer = int(sample    [5])
 
             # for classification, map index 100 to 0, so that all possible values become (0, 1, 2, 3, 4)
             if years_to_cancer == 100:
                 years_to_cancer = 0
-            #if 1 <= years_to_cancer <= 4:
+            # if 1 <= years_to_cancer <= 4:
             #    years_to_cancer = 1
+
 
             # convert to tensor
             years_to_cancer = torch.tensor(years_to_cancer).to(DEVICE)

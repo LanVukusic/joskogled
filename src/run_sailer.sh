@@ -8,4 +8,4 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=1
-singularity exec container.sif  python3 sailer.py
+singularity exec kontejner5.sif  python3 sailer.py
