@@ -3,6 +3,7 @@ from dataloader import get_dataloader
 # from model import Model
 from models import Model as Model
 from trainer import Trainer
+from train import train
 import torch.nn as nn
 import torch
 import math
@@ -24,9 +25,9 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # PARAMS
 NUM_EPOCHS = 50
 BATCH_SIZE = 16
-LR = 7e-5
+LR = 3e-4
 MODEL_BASE_NAME = "model_dropout_yolo"
-NUM_CLASSES = 5
+NUM_CLASSES = 2
 
 model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
     MODEL_BASE_NAME,
@@ -45,8 +46,7 @@ metrics = {
     "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES).to(DEVICE),
     "precision": torchmetrics.Precision(
         task="multiclass", num_classes=NUM_CLASSES, average="macro"
-    ).to(DEVICE),
-    "loss": torchmetrics.MeanMetric()
+    ).to(DEVICE)
 }
 
 
@@ -64,7 +64,7 @@ def main():
     # get dataloaders
     dtl_train, dtl_val, shape = get_dataloader(
         data_path="../data/processed_data.txt",
-        img_path="../data/processed_data_halfk",
+        img_path="../data/processed_data_1k",
         batch_size=BATCH_SIZE,
         shuffle=True,
         p=0.8,
@@ -89,68 +89,13 @@ def main():
     trainer = Trainer(model, criterion, optimizer)
 
     # train for number of epochs
-    for epoch in range(NUM_EPOCHS):
-
-        # model.train()
-        for batch_idx, (
-            patient_id,
-            l_cc,
-            l_mlo,
-            r_cc,
-            r_mlo,
-            years_to_cancer,
-        ) in enumerate(dtl_train):
-            loss, out = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
-            acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
-
-            # add data to metrics
-            for metric_name, metric in list(metrics.items())[:-1]:
-                print(
-                    "{}: {:.2f}".format(metric_name, metric(out, years_to_cancer)),
-                    flush=True,
-                    end="| "
-                )
-            print(
-                "loss: {:.2f}".format( list(metrics.values())[-1](loss.item())),
-                flush=True,
-            )
-
-        # print metrics and compute
-        print()
-        print("EPOCH {}:".format(epoch))
-        for metric_name, metric in list(metrics.items()):
-            print("  -: {}: {:.2f}".format(metric_name, metric.compute()), flush=True)
-        print()
-        [metric.reset() for metric in metrics.values()] # reset metrics
-        # after every epoch calculate val loss
-        val_loss = 0
-        batch_idx = 0
-        for batch_idx, (
-            patient_id,
-            l_cc,
-            l_mlo,
-            r_cc,
-            r_mlo,
-            years_to_cancer,
-        ) in enumerate(dtl_val):
-            loss, out = trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
-            val_loss += loss
-            # acc = (out.argmax(axis=1) == years_to_cancer).float().mean()
-            # add data to metrics
-            for metric_name, metric in list(metrics.items())[:-1]:
-                metric(out, years_to_cancer)
-            list(metrics.values())[-1](loss.item())
-        print("\nVALIDATION: ")
-        for metric_name, metric in list(list(metrics.items())):
-            print("  -: {}: {:.2f}".format(metric_name, metric.compute()), flush=True)
-        print()
-        [metric.reset() for metric in metrics.values()] # reset metrics
-
-
-
-
-        val_loss /= batch_idx + 1
-        print(val_loss)
+    train(
+        dtl_train=dtl_train,
+        dtl_val=dtl_val,
+        trainer=trainer,
+        epochs=NUM_EPOCHS,
+        metrics=metrics
+        )
 
 
 if __name__ == "__main__":

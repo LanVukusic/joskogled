@@ -1,14 +1,14 @@
 format_single = lambda key, value : "{}: {:.2f}| ".format(key, value)
 format_compute = lambda key, value : "  -: {}: {:.2f}\n".format(key, value)
 
-def single_metrics(pred, labels, metrics):
+def single_metrics(out, labels, metrics):
     value = ""
     for metric_name, metric in metrics.items():
-        value += format_single(metric_name, metric(out, years_to_cancer))
+        value += format_single(metric_name, metric(out, labels))
     return value
 
 
-def compute_metrics(pred, labels, metrics):
+def compute_metrics(metrics):
     value = ""
     for metric_name, metric in list(list(metrics.items())):
         value += format_compute(metric_name, metric.compute())
@@ -34,14 +34,14 @@ def train(dtl_train, dtl_val, trainer, epochs, metrics):
 
             # calculate and print metrics for one batch
             metric_values = single_metrics(out, years_to_cancer, metrics)
-            print(metric_values + "| " + loss.item(), flush=True)
+            print(metric_values + format_single("loss", loss.item()), flush=True)
 
         # print metrics and compute
         print()
         print("EPOCH {}:".format(epoch))
         print(
-            compute_metrics(out, years_to_cancer, metrics) +
-            format_compute(loss_values.mean())
+            compute_metrics(metrics) +
+            format_compute("loss", sum(loss_values) / len(loss_values))
         )
         print()
 
@@ -61,6 +61,6 @@ def train(dtl_train, dtl_val, trainer, epochs, metrics):
 
         print("\nVALIDATION: ")
         print(
-            compute_metrics(out, years_to_cancer, metrics) +
-            format_compute(loss_values.mean())
+            compute_metrics(metrics) +
+            format_compute("loss", sum(loss_values) / len(loss_values))
         )

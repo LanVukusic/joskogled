@@ -40,8 +40,12 @@ class BreastCancerDataset(Dataset):
             # for classification, map index 100 to 0, so that all possible values become (0, 1, 2, 3, 4)
             if years_to_cancer == 100:
                 years_to_cancer = 0
-            # if 1 <= years_to_cancer <= 4:
+            #elif years_to_cancer != 2:
+            #    continue
+            #else:
             #    years_to_cancer = 1
+            if 1 <= years_to_cancer <= 4:
+                years_to_cancer = 1
 
 
             # convert to tensor
