@@ -81,8 +81,31 @@ class ModelNou(nn.Module):
         # second deccoder head
         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
 
+class Model2(nn.Module):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes, dropouts):
+        super(Model4, self).__init__()
+        # convolutional blocks for each image
+        self.block_cnn_cc = get_block_cnn_pool(in_dims, channels, strides)
+        self.block_cnn_mlo = get_block_cnn_pool(in_dims, channels, strides)
+
+        # concatenate the outputs of the convolutional blocks
+        self.block_classifier = get_block_classifier(
+            4 * channels[-1], fc_sizes, dropouts, out_classes
+        )
+
+    def forward(self, l_cc, l_mlo, r_cc, r_mlo):
+        l_cc = self.block_cnn_cc(l_cc)
+        l_mlo = self.block_cnn_mlo(l_mlo)
+        r_cc = self.block_cnn_cc(r_cc)
+        r_mlo = self.block_cnn_mlo(r_mlo)
+
+        # first prediction head
+        cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
+        x = self.block_classifier(cat)
+        return x
+
 class Model4(nn.Module):
-    def __init__(self, in_dims, out_classes, channels, strides, fc_size):
+    def __init__(self, in_dims, out_classes, channels, strides, fc_sizes, dropouts):
         super(Model4, self).__init__()
         # convolutional blocks for each image
         self.block_cnn_lcc = get_block_cnn_pool(in_dims, channels, strides)
@@ -91,12 +114,8 @@ class Model4(nn.Module):
         self.block_cnn_rmlo = get_block_cnn_pool(in_dims, channels, strides)
 
         # concatenate the outputs of the convolutional blocks
-        self.block_classifier = nn.Sequential(
-            nn.Linear(4 * fc_size, fc_size),
-            nn.LeakyReLU(0.01),
-            nn.Linear(fc_size, fc_size // 2),
-            nn.LeakyReLU(0.01),
-            nn.Linear(fc_size // 2, out_classes),
+        self.block_classifier = get_block_classifier(
+            4 * channels[-1], fc_sizes, dropouts, out_classes
         )
 
     def forward(self, l_cc, l_mlo, r_cc, r_mlo):
@@ -105,6 +124,7 @@ class Model4(nn.Module):
         r_cc = self.block_cnn_rcc(r_cc)
         r_mlo = self.block_cnn_rmlo(r_mlo)
 
+        # first prediction head
         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
         x = self.block_classifier(cat)
         return x

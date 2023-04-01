@@ -11,27 +11,29 @@ import glob
 
 DEVICE=torch.device('cuda:0')
 
+def load_images(img_path):
+    images = {}
+    for path in glob.glob(img_path + "/*.png"):
+        image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+
+        # convert to torch tensors
+        image = torch.from_numpy(image.astype(np.float32))
+
+        # view as 1 channel image
+        # expand dims to add channel dimension
+        image = torch.unsqueeze(image, 0).to(DEVICE)
+        images[path.split("/")[-1]] = image
+    return images
+
 class BreastCancerDataset(Dataset):
-    def __init__(self, data, img_path, upsample=0, transformation=None):
+    def __init__(self, data, images, upsample=0, transformation=None):
         self.data = data
-        self.img_path = img_path
-        self.images = {}
+        self.images = images
         self.shape = ()
         self.samples = []
         self.transformation = transformation
 
         path_map = lambda path: path.replace("rakave/", "").replace("zdrave/", "")
-
-        for path in glob.glob(self.img_path + "/*.png"):
-            image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-
-            # convert to torch tensors
-            image = torch.from_numpy(image.astype(np.float32))
-
-            # view as 1 channel image
-            # expand dims to add channel dimension
-            image = torch.unsqueeze(image, 0).to(DEVICE)
-            self.images[path.split("/")[-1]] = image
 
         for sample in data:
             patient_id = sample[0]
@@ -94,12 +96,68 @@ def get_dataloader(data_path, img_path, batch_size=16, shuffle=False, p=0.8, ups
     rng = np.random.default_rng(seed=3)
     rng.shuffle(data, axis=0)
 
+    # load images
+    images = load_images(img_path)
+
     # clac dividing index and divide the dataset
     div_index = int(p*data.shape[0])
-    dataset_train = BreastCancerDataset(data[:div_index], img_path, upsample, transformation)
-    dataset_val = BreastCancerDataset(data[div_index:], img_path)
+    dataset_train = BreastCancerDataset(data[:div_index], images, upsample, transformation)
+    dataset_val = BreastCancerDataset(data[div_index:], images)
 
     # create dataloaders
     dataloader_train = DataLoader(dataset_train, batch_size=batch_size, shuffle=shuffle)
     dataloader_val = DataLoader(dataset_val, batch_size=batch_size, shuffle=shuffle)
     return dataloader_train, dataloader_val, dataset_train.shape
+
+
+class FinalDataset(Dataset):
+    def __init__(self, data, images):
+        self.data = data
+        self.images = images
+        self.shape = ()
+        self.samples = []
+
+        image_map = lambda id, side, view, : id + "_" + side + "_" + view
+
+        for patient_id in data:
+
+            l_cc_image = self.images[image_map(patient_id, 'L', 'CC')]
+            l_mlo_image = self.images[image_map(patient_id, 'L', 'MLO')]
+            r_cc_image = self.images[image_map(patient_id, 'R', 'CC')]
+            r_mlo_image = self.images[image_map(patient_id, 'R', 'MLO')]
+
+            s = (patient_id, l_cc_image, l_mlo_image, r_cc_image, r_mlo_image)
+            self.samples.append(s)
+
+    def __getitem__(self, index):
+        s = self.samples[index]
+        return s
+
+    def __len__(self):
+        return len(self.samples)
+
+
+def get_final_dataloader(data_path, img_path, batch_size=16):
+    # read data
+    data = np.genfromtxt(data_path, delimiter="\n", dtype=str)
+
+    # load images
+    images = {}
+    for path in glob.glob(img_path + "/*.png"):
+        image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+
+        # convert to torch tensors
+        image = torch.from_numpy(image.astype(np.float32))
+
+        # view as 1 channel image
+        # expand dims to add channel dimension
+        image = torch.unsqueeze(image, 0).to(DEVICE)
+        key = path.split("/")[-1].split('.')[0].split('_')
+        key = '_'.join([key[0], key[2], key[3]])
+        images[key] = image
+
+    dataset = FinalDataset(data, images)
+
+    # create dataloaders
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return dataloader

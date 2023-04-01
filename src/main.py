@@ -1,4 +1,5 @@
-from dataloader import get_dataloader
+from dataloader import get_dataloader, get_final_dataloader
+from final_pred import make_final_pred, save_pred
 
 # from model import Model
 from models import Model as Model
@@ -62,9 +63,17 @@ def main():
     transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-25, 25)))
 
     # get dataloaders
+
+    # primer kako naloziti koncne podatke
+    """
+    dtl_final = get_final_dataloader(
+        data_path="../data/test.txt",
+        img_path="../data/final_data_halfk"
+    )
+    """
     dtl_train, dtl_val, shape = get_dataloader(
         data_path="../data/processed_data.txt",
-        img_path="../data/processed_data_1k",
+        img_path="../data/processed_data_halfk",
         batch_size=BATCH_SIZE,
         shuffle=True,
         p=0.8,
@@ -77,10 +86,10 @@ def main():
     model = Model(
         in_dims=shape,
         out_classes=NUM_CLASSES,  # 0, 1, 2, 3, 4
-        channels=[1, 32, 64, 128, 256],
-        strides=[2, 2, 1, 1],
-        fc_sizes=[128, 64, 32],
-        dropouts=[0.3, 0.3, 0.3]
+        channels=[1, 16, 32, 64, 128],
+        strides=[2, 2, 2, 1, 1, 1],
+        fc_sizes=[128, 64, 8],
+        dropouts=[0.3, 0.1, 0.0]
     ).to(DEVICE)
 
     # define trainer with loss and optimizer
@@ -97,6 +106,11 @@ def main():
         metrics=metrics
         )
 
+    # primer kako nardit predikcije na koncnih podatkih
+    """
+    final = make_final_pred(dtl_final, model)
+    save_pred(final, "pred.txt")
+    """
 
 if __name__ == "__main__":
     main()

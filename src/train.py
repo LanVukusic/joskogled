@@ -44,6 +44,8 @@ def train(dtl_train, dtl_val, trainer, epochs, metrics):
             format_compute("loss", sum(loss_values) / len(loss_values))
         )
         print()
+        
+        loss_values = []
 
         # after every epoch calculate metrics and loss on val data
         for batch_idx, (
