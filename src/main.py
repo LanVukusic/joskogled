@@ -93,6 +93,7 @@ def main():
         fc_sizes=[64, 64, 8],
         dropouts=[0.3, 0.2, 0.0],
         embedder_sizes=[64],
+        embedder_dropouts=[0.2],
     ).to(DEVICE)
 
     # define trainer with loss and optimizer
