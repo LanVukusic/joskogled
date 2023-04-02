@@ -1,5 +1,5 @@
 import torch.nn as nn
-from block_cnn import get_block_deconv, get_block_cnn_pool
+from block_cnn import get_block_cnn_pool
 from block_classifier import get_block_classifier
 import torch
 
