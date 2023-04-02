@@ -8,7 +8,9 @@ let
       torch
       opencv4
       matplotlib
-      # other python packages
+      # python dev packages. formater, linter, etc.
+      black
+      bandit
     ];
     my-python = pkgs.python3.withPackages my-python-packages;
 in
@@ -16,7 +18,7 @@ pkgs.mkShell {
   name="RIS 2023 tekmovanje";
   
   
-  buildInputs = [
+  buildInputs =[
     pkgs.python3
     my-python
   ];
