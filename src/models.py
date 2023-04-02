@@ -41,7 +41,7 @@ class Model(nn.Module):
         r_cc = self.block_cnn(r_cc_in)
         r_mlo = self.block_cnn(r_mlo_in)
         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
-        x = self.block_embedder(cat_in)
+        x = self.block_embedder(cat)
 
         # downsample the image by a factor of 2 and push through the convolutional blocks
         l_cc_ds = self.downsample(l_cc_in)
