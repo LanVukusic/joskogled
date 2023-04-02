@@ -21,7 +21,7 @@ class Model(nn.Module):
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
 
         # downsample the image by a factor of 2
-        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.downsample = nn.MaxPool2d(kernel_size=3, stride=2)
 
         # fully connected feature extractor for the 4 images
         # takes the output of the convolutional blocks and outputs a feature vector
@@ -34,24 +34,24 @@ class Model(nn.Module):
             embedder_sizes[-1], fc_sizes, dropouts, out_classes
         )
 
-    def forward(self, l_cc, l_mlo, r_cc, r_mlo):
+    def forward(self, l_cc_in, l_mlo_in, r_cc_in, r_mlo_in):
         # original size
-        l_cc = self.block_cnn(l_cc)
-        l_mlo = self.block_cnn(l_mlo)
-        r_cc = self.block_cnn(r_cc)
-        r_mlo = self.block_cnn(r_mlo)
+        l_cc = self.block_cnn(l_cc_in)
+        l_mlo = self.block_cnn(l_mlo_in)
+        r_cc = self.block_cnn(r_cc_in)
+        r_mlo = self.block_cnn(r_mlo_in)
         cat = torch.cat([l_cc, l_mlo, r_cc, r_mlo], dim=1)
-        x = self.block_embedder(cat)
+        x = self.block_embedder(cat_in)
 
         # downsample the image by a factor of 2 and push through the convolutional blocks
-        l_cc_ds = self.downsample(l_cc)
-        l_cc_ds = self.block_cnn(l_cc)
-        l_mlo_ds = self.downsample(l_mlo)
-        l_mlo_ds = self.block_cnn(l_mlo)
-        r_cc_ds = self.downsample(r_cc)
-        r_cc_ds = self.block_cnn(r_cc)
-        r_mlo_ds = self.downsample(r_mlo)
-        r_mlo_ds = self.block_cnn(r_mlo)
+        l_cc_ds = self.downsample(l_cc_in)
+        l_cc_ds = self.block_cnn(l_cc_ds)
+        l_mlo_ds = self.downsample(l_mlo_in)
+        l_mlo_ds = self.block_cnn(l_mlo_ds)
+        r_cc_ds = self.downsample(r_cc_in)
+        r_cc_ds = self.block_cnn(r_cc_ds)
+        r_mlo_ds = self.downsample(r_mlo_in)
+        r_mlo_ds = self.block_cnn(r_mlo_ds)
 
         cat_ds = torch.cat([l_cc_ds, l_mlo_ds, r_cc_ds, r_mlo_ds], dim=1)
         x_ds = self.block_embedder(cat_ds)
