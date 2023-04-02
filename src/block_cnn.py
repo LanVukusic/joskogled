@@ -138,16 +138,3 @@ def get_block_cnn2(in_dims, channels, strides):
         print(x.shape)
 
     return nn.Sequential(*layers)
-
-
-def get_block_deconv(in_dims, channels, strides):
-    # sutarjeva koda god bless
-    layers = []
-    for i in range(len(channels) - 1, 1, -1):
-        layers.append(get_reverse_blok_kao(channels[i], channels[i - 1], strides[i]))
-    with torch.no_grad():
-        x = torch.zeros((1, channels[-1], *in_dims))  # batch_size, channels, h, w
-        for layer in layers:
-            x = layer(x)
-        print(x.shape)
-    return nn.Sequential(*layers)
