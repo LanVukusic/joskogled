@@ -88,7 +88,7 @@ def main():
     model = Model(
         in_dims=shape,
         out_classes=NUM_CLASSES,  # 0, 1, 2, 3, 4
-        channels=[1, 16, 32, 64, 128],
+        channels=[1, 16, 32, 64],
         strides=[2, 2, 2, 1, 1, 1],
         fc_sizes=[128, 64, 8],
         dropouts=[0.3, 0.1, 0.0],
