@@ -22,5 +22,5 @@ From: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
 %labels
     Author      Lan Vukusic, Matic Sutar, Enei Sluga
     Container   joskogled
-    Version     3.0
+    Version     6.0
     Description kontejner za ucenje na tekmovanju ris2023

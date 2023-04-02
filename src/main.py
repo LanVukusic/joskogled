@@ -1,8 +1,8 @@
-from dataloader import get_dataloader, get_final_dataloader
+from sailer_loader import get_datasets
 from final_pred import make_final_pred, save_pred
 
 # from model import Model
-from models import Model as Model
+from models import Model
 from trainer import Trainer
 from train import train
 import torch.nn as nn
@@ -27,7 +27,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 NUM_EPOCHS = 50
 BATCH_SIZE = 16
 LR = 3e-4
-MODEL_BASE_NAME = "model_dropout_yolo"
+MODEL_BASE_NAME = "model_dropout"
 NUM_CLASSES = 2
 
 model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
@@ -44,10 +44,12 @@ metrics = {
     "auroc": torchmetrics.AUROC(
         task="multiclass", num_classes=NUM_CLASSES, average="macro"
     ).to(DEVICE),
-    "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES).to(DEVICE),
+    "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES).to(
+        DEVICE
+    ),
     "precision": torchmetrics.Precision(
         task="multiclass", num_classes=NUM_CLASSES, average="macro"
-    ).to(DEVICE)
+    ).to(DEVICE),
 }
 
 
@@ -71,13 +73,10 @@ def main():
         img_path="../data/final_data_halfk"
     )
     """
-    dtl_train, dtl_val, shape = get_dataloader(
-        data_path="../data/processed_data.txt",
-        img_path="../data/processed_data_halfk",
-        batch_size=BATCH_SIZE,
-        shuffle=True,
+    dtl_train, dtl_val, shape = get_datasets(
+        data_file="../../data/combined_data.csv",
+        image_root="../../data/",
         p=0.8,
-        upsample=3,
         transformation=transformation,
     )
     print("mogoce dela", flush=True)
@@ -89,7 +88,7 @@ def main():
         channels=[1, 16, 32, 64, 128],
         strides=[2, 2, 2, 1, 1, 1],
         fc_sizes=[128, 64, 8],
-        dropouts=[0.3, 0.1, 0.0]
+        dropouts=[0.3, 0.1, 0.0],
     ).to(DEVICE)
 
     # define trainer with loss and optimizer
@@ -103,14 +102,15 @@ def main():
         dtl_val=dtl_val,
         trainer=trainer,
         epochs=NUM_EPOCHS,
-        metrics=metrics
-        )
+        metrics=metrics,
+    )
 
     # primer kako nardit predikcije na koncnih podatkih
     """
     final = make_final_pred(dtl_final, model)
     save_pred(final, "pred.txt")
     """
+
 
 if __name__ == "__main__":
     main()

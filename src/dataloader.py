@@ -9,22 +9,18 @@ import numpy as np
 import cv2
 import glob
 
-DEVICE = torch.device("cuda:0")
+# set device to GPU
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def load_images(img_path):
-    images = {}
-    for path in glob.glob(img_path + "/*.png"):
-        image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+def load_image(img_path):
+    image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-        # convert to torch tensors
-        image = torch.from_numpy(image.astype(np.float32))
+    # convert to torch tensors
+    image = torch.from_numpy(image.astype(np.float32))
 
-        # view as 1 channel image
-        # expand dims to add channel dimension
-        image = torch.unsqueeze(image, 0).to(DEVICE)
-        images[path.split("/")[-1]] = image
-    return images
+    return image
 
 
 class BreastCancerDataset(Dataset):
@@ -76,7 +72,6 @@ class BreastCancerDataset(Dataset):
             self.shape = self.samples[0][1].shape[1:]
 
     def __getitem__(self, index):
-        # print("getdata monaa")
 
         s = self.samples[index]
         (
@@ -112,21 +107,31 @@ class BreastCancerDataset(Dataset):
 def get_dataloader(
     data_path,
     img_path,
+    data_path2,
+    img_path2,
     batch_size=16,
     shuffle=False,
     p=0.8,
     upsample=0,
     transformation=None,
 ):
-    # read data
-    data = np.genfromtxt(data_path, delimiter=",", dtype=str)
+    # combined data from both datasets
 
+    # read data original
+    data = np.genfromtxt(data_path, delimiter=",", dtype=str)
     # shuffle data in place
     rng = np.random.default_rng(seed=3)
     rng.shuffle(data, axis=0)
-
     # load images
     images = load_images(img_path)
+
+    # # read data kaggle
+    # data2 = np.genfromtxt(data_path2, delimiter=",", dtype=str)
+    # # shuffle data in place
+    # rng = np.random.default_rng(seed=3)
+    # rng.shuffle(data2, axis=0)
+    # # load images
+    # images2 = load_images(img_path2)
 
     # calc dividing index and divide the dataset
     div_index = int(p * data.shape[0])

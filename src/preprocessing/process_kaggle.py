@@ -1,6 +1,5 @@
 import pandas as pd
 
-IMG_PATH = "../../data/kaggle_additional/"
 CSV_PATH = "../../data/kaggle_data.csv"
 CSV_OUT_PATH = "../../data/kaggle_data_processed.csv"
 
@@ -32,6 +31,7 @@ def main():
         if patient_id not in temp_dict:
             temp_dict[patient_id] = {
                 "cancer": cancer,
+                "patient_id": patient_id,
             }
 
         # get laterality
@@ -47,7 +47,7 @@ def main():
         image_id = row["image_id"]
 
         # add image to the dict
-        path = "{}{}_{}.png".format(IMG_PATH, patient_id, image_id)
+        path = "{}_{}.png".format(patient_id, image_id)
         temp_dict[patient_id][laterality + "_" + view] = path
 
     # dict to dataframe
@@ -58,7 +58,7 @@ def main():
     print(out_df.head(10))
 
     # save the output dataframe to csv, without the index
-    out_df.to_csv(CSV_OUT_PATH, index=False)
+    out_df.to_csv(CSV_OUT_PATH, index=False, header=True)
 
 
 if __name__ == "__main__":
