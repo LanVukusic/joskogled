@@ -21,7 +21,7 @@ class Model(nn.Module):
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
 
         # downsample the image by a factor of 2
-        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
         # fully connected feature extractor for the 4 images
         # takes the output of the convolutional blocks and outputs a feature vector
@@ -44,10 +44,15 @@ class Model(nn.Module):
         x = self.block_embedder(cat)
 
         # downsample the image by a factor of 2 and push through the convolutional blocks
-        l_cc_ds = self.block_cnn(self.downsample(l_cc))
-        l_mlo_ds = self.block_cnn(self.downsample(l_mlo))
-        r_cc_ds = self.block_cnn(self.downsample(r_cc))
-        r_mlo_ds = self.block_cnn(self.downsample(r_mlo))
+        l_cc_ds = self.downsample(l_cc)
+        l_cc_ds = self.block_cnn(l_cc)
+        l_mlo_ds = self.downsample(l_mlo)
+        l_mlo_ds = self.block_cnn(l_mlo)
+        r_cc_ds = self.downsample(r_cc)
+        r_cc_ds = self.block_cnn(r_cc)
+        r_mlo_ds = self.downsample(r_mlo)
+        r_mlo_ds = self.block_cnn(r_mlo)
+
         cat_ds = torch.cat([l_cc_ds, l_mlo_ds, r_cc_ds, r_mlo_ds], dim=1)
         x_ds = self.block_embedder(cat_ds)
 
