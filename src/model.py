@@ -17,15 +17,21 @@ class Model(nn.Module):
         # downsample the image by a factor of 2
         self.downsample = nn.MaxPool2d(kernel_size=2, stride=2, padding="same")
 
-        # concatenate the outputs of the convolutional blocks
+        # concat layer for the 4 images
+        self.block_embedder = nn.Sequential(
+            nn.Linear(4 * fc_size, fc_size // 2),
+            nn.LeakyReLU(0.01),
+            nn.Linear(fc_size // 2, fc_size // 2),
+            nn.LeakyReLU(0.01),
+        )
+
+        # classification layer
         self.block_classifier = nn.Sequential(
-            nn.Linear(4 * fc_size, fc_size),
+            nn.Linear(fc_size // 2, fc_size // 2),
             nn.LeakyReLU(0.01),
-            nn.Linear(fc_size, fc_size),
+            nn.Linear(fc_size // 2, fc_size // 4),
             nn.LeakyReLU(0.01),
-            nn.Linear(fc_size, fc_size // 2),
-            nn.LeakyReLU(0.01),
-            nn.Linear(fc_size // 2, out_classes),
+            nn.Linear(fc_size // 4, out_classes),
             nn.Softmax(dim=1),
         )
 
@@ -34,6 +40,8 @@ class Model(nn.Module):
         l_mlo = self.l_mlo_cnn(l_mlo_in)
         r_cc = self.r_cc_cnn(r_cc_in)
         r_mlo = self.r_mlo_cnn(r_mlo_in)
+        first_size_embedding = torch.cat((l_cc, l_mlo, r_cc, r_mlo), dim=1)
+        first_size_embedding = self.block_embedder(first_size_embedding)
 
         # downsample the image by a factor of 2
         # pool
@@ -46,6 +54,8 @@ class Model(nn.Module):
         l_mlo_ds = self.l_mlo_cnn(l_mlo_ds)
         r_cc_ds = self.r_cc_cnn(r_cc_ds)
         r_mlo_ds = self.r_mlo_cnn(r_mlo_ds)
+        second_size_embedding = torch.cat((l_cc_ds, l_mlo_ds, r_cc_ds, r_mlo_ds), dim=1)
+        second_size_embedding = self.block_embedder(second_size_embedding)
 
         # second downsample
         # pool
@@ -58,26 +68,17 @@ class Model(nn.Module):
         l_mlo_ds2 = self.l_mlo_cnn(l_mlo_ds2)
         r_cc_ds2 = self.r_cc_cnn(r_cc_ds2)
         r_mlo_ds2 = self.r_mlo_cnn(r_mlo_ds2)
-
-        cat = torch.cat(
-            [
-                # input size
-                l_cc,
-                l_mlo,
-                r_cc,
-                r_mlo,
-                # downsampled size
-                l_cc_ds,
-                l_mlo_ds,
-                r_cc_ds,
-                r_mlo_ds,
-                # second downsampled size
-                l_cc_ds2,
-                l_mlo_ds2,
-                r_cc_ds2,
-                r_mlo_ds2,
-            ],
-            dim=1,
+        third_size_embedding = torch.cat(
+            (l_cc_ds2, l_mlo_ds2, r_cc_ds2, r_mlo_ds2), dim=1
         )
+        third_size_embedding = self.block_embedder(third_size_embedding)
+
+        # sum the embeddings
+        cat = torch.sum(
+            torch.stack(
+                (first_size_embedding, second_size_embedding, third_size_embedding)
+            ),
+        )
+
         x = self.block_classifier(cat)
         return x
