@@ -8,6 +8,7 @@ let
       torch
       opencv4
       matplotlib
+      pandas
       # other python packages
     ];
     my-python = pkgs.python3.withPackages my-python-packages;
