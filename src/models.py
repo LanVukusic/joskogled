@@ -21,7 +21,7 @@ class Model(nn.Module):
         self.block_cnn = get_block_cnn_pool(in_dims, channels, strides)
 
         # downsample the image by a factor of 2
-        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2, padding="same")
+        self.downsample = nn.MaxPool2d(kernel_size=2, stride=2)
 
         # fully connected feature extractor for the 4 images
         # takes the output of the convolutional blocks and outputs a feature vector
