@@ -1,5 +1,6 @@
 from sailer_loader import get_datasets
-from final_pred import make_final_pred, save_pred
+
+# from final_pred import make_final_pred, save_pred
 
 # from model import Model
 from models import Model
@@ -62,7 +63,7 @@ def main():
     torch.manual_seed(3)
 
     # define transformation to be aplied on train data images
-    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-25, 25)))
+    transformation = torch.nn.Sequential(T.RandomRotation(degrees=(-12, 12)))
 
     # get dataloaders
 
@@ -76,7 +77,7 @@ def main():
     dtl_train, dtl_val, shape = get_datasets(
         data_file="../../data/combined_data.csv",
         image_root="../../data/",
-        p=0.8,
+        split=0.8,
         transformation=transformation,
     )
     print("mogoce dela", flush=True)
@@ -84,7 +85,7 @@ def main():
     # define classification model
     model = Model(
         in_dims=shape,
-        out_classes=NUM_CLASSES,  # 0, 1, 2, 3, 4
+        out_classes=NUM_CLASSES,  # 0, 1
         channels=[1, 16, 32, 64, 128],
         strides=[2, 2, 2, 1, 1, 1],
         fc_sizes=[128, 64, 8],
