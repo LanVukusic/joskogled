@@ -77,7 +77,7 @@ class BreastCancerDataset(Dataset):
             r_mlo_image = self.transformation(r_mlo_image)
 
         # cancer to one hot tensor on device
-        cancer = torch.tensor(cancer, dtype=torch.float32).to(DEVICE)
+        cancer = torch.tensor(cancer.astype(int), dtype=torch.float32).to(DEVICE)
 
         return (patient_id, l_cc_image, l_mlo_image, r_cc_image, r_mlo_image, cancer)
 
