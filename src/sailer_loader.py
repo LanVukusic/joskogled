@@ -35,14 +35,7 @@ class BreastCancerDataset(Dataset):
         # rng = np.random.default_rng(seed=3)
         # rng.shuffle(self.data, axis=0)
 
-        print("data", len(self.data))
-
-        # split data into two arrays, one for each class
-        self.rakave = self.data[self.data[:, 5] == 1]
-        self.zdrave = self.data[self.data[:, 5] == 0]
-
-        print("rakave", len(self.rakave))
-        print("zdrave", len(self.zdrave))
+        print("data", len(self.data), self.data[0], self.data[1].shape)
 
     def __getitem__(self, index):
         sample = None
