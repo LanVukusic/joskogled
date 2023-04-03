@@ -31,9 +31,11 @@ class BreastCancerDataset(Dataset):
 
         # convert last column to int
         self.data[:, 5] = self.data[:, 5].astype(int)
-        # shuffle data in place
-        rng = np.random.default_rng(seed=3)
-        rng.shuffle(self.data, axis=0)
+        # # shuffle data in place
+        # rng = np.random.default_rng(seed=3)
+        # rng.shuffle(self.data, axis=0)
+
+        print("data", len(self.data))
 
         # split data into two arrays, one for each class
         self.rakave = self.data[self.data[:, 5] == 1]
