@@ -78,7 +78,7 @@ def main():
         data_file="../../data/combined_data.csv",
         image_root="../../data/",
         split=0.8,
-        transformation=transformation,
+        transform=transformation,
     )
     print("mogoce dela", flush=True)
 
