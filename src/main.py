@@ -75,8 +75,8 @@ def main():
     )
     """
     dtl_train, dtl_val, shape = get_datasets(
-        data_file="../../data/combined_data.csv",
-        image_root="../../data/",
+        data_file="/d/hpc/home/ris002/joskogled/data/combined_data.csv",
+        image_root="/d/hpc/home/ris002/joskogled/data/",
         split=0.8,
         transform=transformation,
     )
