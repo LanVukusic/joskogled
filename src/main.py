@@ -40,20 +40,6 @@ model_name = "{}_lr-{}_bs-{}_ne-{}_{}".format(
 )
 
 
-# METRICS
-metrics = {
-    "auroc": torchmetrics.AUROC(
-        task="multiclass", num_classes=NUM_CLASSES, average="macro"
-    ).to(DEVICE),
-    "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=NUM_CLASSES).to(
-        DEVICE
-    ),
-    "precision": torchmetrics.Precision(
-        task="multiclass", num_classes=NUM_CLASSES, average="macro"
-    ).to(DEVICE),
-}
-
-
 print("runnig model: {}".format(model_name), flush=True)
 
 
@@ -103,7 +89,6 @@ def main():
         dtl_val=dtl_val,
         trainer=trainer,
         epochs=NUM_EPOCHS,
-        metrics=metrics,
     )
 
     # primer kako nardit predikcije na koncnih podatkih

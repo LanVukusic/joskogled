@@ -1,26 +1,24 @@
-format_single = lambda key, value : "{}: {:.2f}| ".format(key, value)
-format_compute = lambda key, value : "  -: {}: {:.2f}\n".format(key, value)
+from model_meta import ModelMeta
 
-def single_metrics(out, labels, metrics):
-    value = ""
-    for metric_name, metric in metrics.items():
-        value += format_single(metric_name, metric(out, labels))
-    return value
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+# fckyea custom metrics bby
+metrics = ModelMetrics(device=DEVICE)
+metrics.add_metric(
+    "auroc", torchmetrics.AUROC(task="multiclass", num_classes=2, average="macro")
+)
+metrics.add_metric("accuracy", torchmetrics.Accuracy(task="multiclass", num_classes=2))
+metrics.add_metric(
+    "precision",
+    torchmetrics.Precision(task="multiclass", num_classes=2, average="macro"),
+)
 
 
-def compute_metrics(metrics):
-    value = ""
-    for metric_name, metric in list(list(metrics.items())):
-        value += format_compute(metric_name, metric.compute())
-    [metric.reset() for metric in metrics.values()] # reset metrics
-    return value
-
-def train(dtl_train, dtl_val, trainer, epochs, metrics):
-# train for number of epochs
+def train(dtl_train, dtl_val, trainer, epochs):
+    # train for number of epochs
     for epoch in range(epochs):
         loss_values = []
 
-        # model.train()
         for batch_idx, (
             patient_id,
             l_cc,
@@ -30,24 +28,26 @@ def train(dtl_train, dtl_val, trainer, epochs, metrics):
             years_to_cancer,
         ) in enumerate(dtl_train):
             loss, out = trainer.train((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
-            loss_values.append(loss.item())
+            # loss_values.append(loss.item())
+            # print(loss.item())
 
             # calculate and print metrics for one batch
-            metric_values = single_metrics(out, years_to_cancer, metrics)
-            print(metric_values + format_single("loss", loss.item()), flush=True)
+            metrics.update(
+                out,
+                years_to_cancer,
+                show=True,
+                current_epoch=epoch,
+                current_batch=batch_idx,
+            )
 
         # print metrics and compute
-        print()
-        print("EPOCH {}:".format(epoch))
-        print(
-            compute_metrics(metrics) +
-            format_compute("loss", sum(loss_values) / len(loss_values))
-        )
-        print()
-        
-        loss_values = []
+        metrics.compute(show=True)
+        metrics.reset()
+
+        # loss_values = []
 
         # after every epoch calculate metrics and loss on val data
+        metrics.reset()
         for batch_idx, (
             patient_id,
             l_cc,
@@ -57,12 +57,16 @@ def train(dtl_train, dtl_val, trainer, epochs, metrics):
             years_to_cancer,
         ) in enumerate(dtl_val):
             loss, out = trainer.eval((l_cc, l_mlo, r_cc, r_mlo), years_to_cancer)
-            loss_values.append(loss)
+            # loss_values.append(loss)
             # add data to metrics
             single_metrics(out, years_to_cancer, metrics)
+            metrics.update(
+                out,
+                years_to_cancer,
+                show=False,
+            )
 
         print("\nVALIDATION: ")
-        print(
-            compute_metrics(metrics) +
-            format_compute("loss", sum(loss_values) / len(loss_values))
-        )
+        # print metrics and compute
+        metrics.compute(show=True)
+        metrics.reset()
