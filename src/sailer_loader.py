@@ -29,13 +29,15 @@ class BreastCancerDataset(Dataset):
         self.data = data
         self.image_root = image_root
 
-        # convert last column to int
-        self.data[:, 5] = self.data[:, 5].astype(int)
         # # shuffle data in place
-        # rng = np.random.default_rng(seed=3)
-        # rng.shuffle(self.data, axis=0)
+        rng = np.random.default_rng(seed=3)
+        rng.shuffle(self.data, axis=0)
 
         print("data", len(self.data), self.data[0], self.data[1].shape)
+
+        # split data into healthy and cancerous
+        self.rakave = self.data[self.data[:, 5] == "1"]
+        self.zdrave = self.data[self.data[:, 5] == "0"]
 
     def __getitem__(self, index):
         sample = None
