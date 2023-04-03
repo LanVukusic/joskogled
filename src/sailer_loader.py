@@ -88,7 +88,7 @@ class BreastCancerDataset(Dataset):
 
 def get_datasets(image_root, data_file, split=0.8, transform=None):
     # read data definition file
-    data = np.loadtext(data_file, delimiter=",", dtype=str)
+    data = np.loadtxt(data_file, delimiter=",", dtype=str)
     data_len = len(data)
     split_index = int(data_len * split)
 
