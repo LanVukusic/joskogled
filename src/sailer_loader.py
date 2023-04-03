@@ -14,8 +14,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def load_image(img_path):
-    image = cv2.imread(img_path, cv2.IMREAD_UNCHANGED)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
     # convert to torch tensors
     image = torch.from_numpy(image.astype(np.float32))
