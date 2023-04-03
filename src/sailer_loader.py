@@ -64,10 +64,10 @@ class BreastCancerDataset(Dataset):
         r_mlo_image = load_image(self.image_root + r_mlo_image)
 
         # add batch dimension and push to device
-        l_cc_image = l_cc_image.unsqueeze(0).to(DEVICE)
-        l_mlo_image = l_mlo_image.unsqueeze(0).to(DEVICE)
-        r_cc_image = r_cc_image.unsqueeze(0).to(DEVICE)
-        r_mlo_image = r_mlo_image.unsqueeze(0).to(DEVICE)
+        l_cc_image = l_cc_image.to(DEVICE)
+        l_mlo_image = l_mlo_image.to(DEVICE)
+        r_cc_image = r_cc_image.to(DEVICE)
+        r_mlo_image = r_mlo_image.to(DEVICE)
 
         # Do transformations ...
         if self.transformation is not None:
