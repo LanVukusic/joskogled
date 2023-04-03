@@ -41,7 +41,7 @@ class BreastCancerDataset(Dataset):
         self.rakave = self.data[self.data[:, 5] == 1]
         self.zdrave = self.data[self.data[:, 5] == 0]
 
-        pritn("rakave", len(self.rakave))
+        print("rakave", len(self.rakave))
         print("zdrave", len(self.zdrave))
 
     def __getitem__(self, index):
