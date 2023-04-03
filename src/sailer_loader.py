@@ -41,6 +41,9 @@ class BreastCancerDataset(Dataset):
         self.rakave = self.data[self.data[:, 5] == 1]
         self.zdrave = self.data[self.data[:, 5] == 0]
 
+        pritn("rakave", len(self.rakave))
+        print("zdrave", len(self.zdrave))
+
     def __getitem__(self, index):
         sample = None
         # patient_id, L_CC, L_MLO, R_CC, R_MLO, cancer
