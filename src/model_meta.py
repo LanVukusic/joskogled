@@ -118,7 +118,7 @@ class ModelMetrics:
 if __name__ == "__main__":
     # set device to GPU
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    metrics = ModelMetrics(device=DEVICE, comment="moj_model_2")
+    metrics = ModelMetrics(device=DEVICE, comment="moj_model_zanimiv")
     metrics.add_metric(
         "auroc",
         torchmetrics.AUROC(task="multiclass", num_classes=2, average="macro"),
@@ -138,9 +138,8 @@ if __name__ == "__main__":
             # generate dummy data float32 with 2 classes
             y_pred = torch.rand(16, 2, dtype=torch.float32)
             y_true = torch.randint(0, 2, (16,), dtype=torch.int64)
-            random_loss = random.Random()
 
-            metrics.update(y_pred, y_true, random_loss, show=True, batch=j, epoch=i)
+            metrics.update(y_pred, y_true, 0.2, show=True, batch=j, epoch=i)
 
         metrics.compute(show=True)
         metrics.reset()
