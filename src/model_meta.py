@@ -119,17 +119,9 @@ if __name__ == "__main__":
     # set device to GPU
     DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     metrics = ModelMetrics(device=DEVICE, comment="moj_model_zanimiv")
-    metrics.add_metric(
-        "auroc",
-        torchmetrics.AUROC(task="multiclass", num_classes=2, average="macro"),
-    )
-    metrics.add_metric(
-        "accuracy", torchmetrics.Accuracy(task="multiclass", num_classes=2)
-    )
-    metrics.add_metric(
-        "precision",
-        torchmetrics.Precision(task="multiclass", num_classes=2, average="macro"),
-    )
+    metrics.add_metric("auroc",torchmetrics.AUROC(task="multiclass", num_classes=2, average="macro"))
+    metrics.add_metric("accuracy", torchmetrics.Accuracy(task="multiclass", num_classes=2))
+    metrics.add_metric("precision",torchmetrics.Precision(task="multiclass", num_classes=2, average="macro"),)
 
     # dummy trainings
     for i in range(10):

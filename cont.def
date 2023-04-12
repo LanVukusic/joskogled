@@ -15,6 +15,7 @@ From: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
     apt install ffmpeg libsm6 libxext6  -y
     python3 -m pip --no-cache-dir install opencv-python
     python3 -m pip --no-cache-dir install torchmetrics
+    python3 -m pip --no-cache-dir install tensorboard
 #%runscript
     # skripta, ki se izvede ob zagonu vsebnika
     # fortune "$@"

@@ -4,6 +4,7 @@ processed_data
 processed_data_1k
 processed_data_halfk
 processed_data_halfk_small
+processed_data_512
 
 # kaggle dataset
 kaggle_additional
